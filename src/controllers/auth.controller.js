@@ -80,7 +80,7 @@ class AuthController {
             return res.status(201).json({
                 status: "Success",
                 message: "User registered successfully",
-                data: {user: createdUser, token},
+                data: {user: createdUser},
             })
 
         } catch (error) {
@@ -135,7 +135,7 @@ class AuthController {
             return res.status(200).json({
                 status: "Success",
                 message: "User logged in successfully",
-                data: {user, token},
+                data: {user},
             });
 
         } catch (error) {
