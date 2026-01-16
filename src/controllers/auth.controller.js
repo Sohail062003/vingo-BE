@@ -227,12 +227,6 @@ class AuthController {
         });
       }
 
-      // OTP valid → lock identity
-      //   const resetToken = jwt.sign(
-      //     { userId: user._id },
-      //     process.env.JWT_SECRET,
-      //     { expiresIn: "10m" }
-      //   );
       const resetToken = await genToken(user._id);
 
       res.cookie("resetToken", resetToken, {
@@ -266,7 +260,7 @@ class AuthController {
 
       const { newPassword } = req.body;
 
-      if (!newPassword) {
+      if (!newPassword ) {
         return res.status(400).json({
           status: "fail",
           message: "New password is required",
