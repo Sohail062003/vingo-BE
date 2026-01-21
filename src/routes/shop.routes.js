@@ -9,6 +9,6 @@ const route = express.Router();
 
 
 route.post("/create-edit", isAuth, upload.single("image"),ShopController.createEditShop);
-
+route.post("/get-shop", isAuth, ShopController.getMyShop);
 
 export default route;

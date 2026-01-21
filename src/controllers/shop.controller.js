@@ -1,3 +1,4 @@
+import { stat } from "fs";
 import Shop from "../models/shop.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
 
@@ -101,6 +102,30 @@ class ShopController {
         status: "error",
         message: "createEditShop | Internal Server Error",
       });
+    }
+  }
+
+  static async getMyShop(req, res) {
+    try {
+      const shop = await Shop.findOne({owner:req.userId});
+      if (!shop) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Shop not found',
+        });
+      }
+
+      return res.status(201).json({
+          status: 'success',
+          message: 'Shop found successfully',
+          data: {shop}
+        });
+    } catch (error) {
+      console.log("getMyShop error - ", error);
+      return res.status(500).json({
+        status: 'error',
+        message: 'getMyShop | Internal Server Error'
+      })
     }
   }
 }
