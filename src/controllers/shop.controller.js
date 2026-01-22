@@ -57,9 +57,9 @@ class ShopController {
           });
         }
 
-        await shop.populate("owner");
+        await shop.populate("owner, items");
 
-        return res.status(201).json({
+        return res.status(200).json({
           status: "success",
           message: "Shop created successfully",
           data: { shop },
@@ -108,14 +108,15 @@ class ShopController {
   static async getMyShop(req, res) {
     try {
       const shop = await Shop.findOne({owner:req.userId});
+      
       if (!shop) {
-        return res.status(400).json({
-          status: 'fail',
-          message: 'Shop not found',
+        return res.status(200).json({
+          status: 'success',
+          message: 'Shop not created yet',
         });
       }
 
-      return res.status(201).json({
+      return res.status(200).json({
           status: 'success',
           message: 'Shop found successfully',
           data: {shop}

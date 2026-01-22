@@ -29,10 +29,14 @@ class ItemController {
                 shop:shop._id
             });
 
+            shop.items.push(item._id);
+            await shop.save();
+            await shop.populate("items owner");
+
             return res.status(201).json({
                     status: 'success',
                     message: 'Item created successfully',
-                    data: {item}
+                    data: {shop}
                 });
 
         } catch (error) {
