@@ -107,7 +107,15 @@ class ShopController {
 
   static async getMyShop(req, res) {
     try {
-      const shop = await Shop.findOne({owner:req.userId});
+      // const shop = await Shop.findOne({owner:req.userId}).populate([
+      //   { path: "items" },
+      //   // { path: "owner" }
+      // ]);
+
+      const shop =await Shop.findOne({owner:req.userId}).populate({
+        path: "items",
+        options: {sort: {updatedAt: -1}}
+      })
       
       if (!shop) {
         return res.status(200).json({
