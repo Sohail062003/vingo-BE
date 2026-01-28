@@ -143,7 +143,7 @@ class ItemController {
             });
 
             return res.status(200).json({
-                    status: 'sucess',
+                    status: 'success',
                     message: 'item deleted succuessfully',
                     data: {shop}
             });
