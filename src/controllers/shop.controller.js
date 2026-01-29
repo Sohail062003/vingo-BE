@@ -107,11 +107,7 @@ class ShopController {
 
   static async getMyShop(req, res) {
     try {
-      // const shop = await Shop.findOne({owner:req.userId}).populate([
-      //   { path: "items" },
-      //   // { path: "owner" }
-      // ]);
-
+    
       const shop =await Shop.findOne({owner:req.userId}).populate({
         path: "items",
         options: {sort: {updatedAt: -1}}
@@ -137,6 +133,36 @@ class ShopController {
       })
     }
   }
+
+  static async getShopByCity(req, res) {
+    try {
+  
+     const {city} = req.params; 
+     const shops = await Shop.find({
+      city: {$regex: new RegExp(`^${city}$`, 'i')}
+     }).populate("items");
+     if (!shops) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'No Shops found in this city'
+      });
+     }
+
+     return res.status(200).json({
+      status: 'success',
+      message: 'Shop fetched successfully',
+      data: {shops}
+     });
+ 
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'getShopByCity | Internal Server Error'
+      });
+    }
+  }
+
+
 }
 
 export default ShopController;
