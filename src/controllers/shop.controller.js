@@ -57,7 +57,7 @@ class ShopController {
           });
         }
 
-        await shop.populate("owner, items");
+        await shop.populate("owner items");
 
         return res.status(200).json({
           status: "success",
