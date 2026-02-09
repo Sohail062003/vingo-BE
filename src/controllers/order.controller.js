@@ -132,6 +132,7 @@ class OrderController {
         // .populate("user") 
         // .populate("shopOrders.shopOrderItems.item", "name image price");
 
+
         const orders = await Order.aggregate([
     // 1️⃣ Match orders where this owner exists
     {
@@ -153,6 +154,8 @@ class OrderController {
       $unwind: "$user"
     },
 
+   
+
     // 3️⃣ Filter shopOrders ONLY for this owner
     {
       $addFields: {
@@ -171,6 +174,95 @@ class OrderController {
       $sort: { createdAt: -1 }
     }
   ]);
+
+//   const orders = await Order.aggregate([
+//   // 1️⃣ Match orders for this owner
+//   {
+//     $match: {
+//       "shopOrders.owner": user._id
+//     }
+//   },
+
+//   // 2️⃣ Populate USER
+//   {
+//     $lookup: {
+//       from: "users",
+//       localField: "user",
+//       foreignField: "_id",
+//       as: "user"
+//     }
+//   },
+//   { $unwind: "$user" },
+
+//   // 3️⃣ Keep ONLY this owner's shopOrders
+//   {
+//     $addFields: {
+//       shopOrders: {
+//         $filter: {
+//           input: "$shopOrders",
+//           as: "shopOrder",
+//           cond: { $eq: ["$$shopOrder.owner", user._id] }
+//         }
+//       }
+//     }
+//   },
+
+//   // 4️⃣ Unwind shopOrders (needed for item lookup)
+//   { $unwind: "$shopOrders" },
+
+//   // 5️⃣ Unwind shopOrderItems
+//   { $unwind: "$shopOrders.shopOrderItems" },
+
+//   // 6️⃣ Populate ITEMS
+//   {
+//     $lookup: {
+//       from: "items", // ⚠️ collection name
+//       localField: "shopOrders.shopOrderItems.item",
+//       foreignField: "_id",
+//       as: "itemDetails"
+//     }
+//   },
+//   { $unwind: "$itemDetails" },
+
+//   // 7️⃣ Attach item details
+//   {
+//     $addFields: {
+//       "shopOrders.shopOrderItems.item": {
+//         _id: "$itemDetails._id",
+//         name: "$itemDetails.name",
+//         image: "$itemDetails.image",
+//         price: "$itemDetails.price"
+//       }
+//     }
+//   },
+
+//   // 8️⃣ Cleanup
+//   { $project: { itemDetails: 0 } },
+
+//   // 9️⃣ Group back (VERY IMPORTANT)
+//   {
+//     $group: {
+//       _id: "$_id",
+//       paymentMethod: { $first: "$paymentMethod" },
+//       totalAmount: { $first: "$totalAmount" },
+//       user: { $first: "$user" },
+//       createdAt: { $first: "$createdAt" },
+//       shopOrders: { $push: "$shopOrders" }
+//     }
+//   },
+
+//   // 🔟 Sort
+//   { $sort: { createdAt: -1 } }
+// ]);
+
+
+      // const filteredOrders = orders.map((order=> ({
+      //     _id:order._id,
+      //     paymentMethod:order.paymentMethod,
+      //     user: order.user,
+      //     shopOrders:order.shopOrders.find(o=>o.owner._id == req.userId),
+      //     createdAt:order.createdAt
+      // })))
 
         if (!orders) {
           return res.status(400).json({
