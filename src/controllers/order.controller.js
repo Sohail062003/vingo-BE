@@ -73,6 +73,8 @@ class OrderController {
         shopOrders: shopOrders,
       });
 
+      await newOrder.populate("shopOrders.shopOrderItems.item", "name image price");
+      await newOrder.populate("shopOrders.shop","name");
 
       if (!newOrder) {
         return res.status(400).json({
@@ -126,143 +128,67 @@ class OrderController {
           });
 
         } else if (user.role == "owner") {
-        //   const orders = await Order.find({"shopOrders.owner": req.userId})
-        // .sort({ createdAt: -1 })
-        // .populate("shopOrders.shop", "name")
-        // .populate("user") 
-        // .populate("shopOrders.shopOrderItems.item", "name image price");
+          const ownerOrders = await Order.find({"shopOrders.owner": req.userId})
+        .sort({ createdAt: -1 })
+        .populate("shopOrders.shop", "name")
+        .populate("user") 
+        .populate("shopOrders.shopOrderItems.item", "name image price");
 
 
-        const orders = await Order.aggregate([
-    // 1️⃣ Match orders where this owner exists
-    {
-      $match: {
-        "shopOrders.owner": user._id
-      }
-    },
+  //       const orders = await Order.aggregate([
+  //   // 1️⃣ Match orders where this owner exists
+  //   {
+  //     $match: {
+  //       "shopOrders.owner": user._id
+  //     }
+  //   },
 
-    // 2️⃣ Populate USER
-    {
-      $lookup: {
-        from: "users",              // collection name
-        localField: "user",
-        foreignField: "_id",
-        as: "user"
-      }
-    },
-    {
-      $unwind: "$user"
-    },
+  //   // 2️⃣ Populate USER
+  //   {
+  //     $lookup: {
+  //       from: "users",              // collection name
+  //       localField: "user",
+  //       foreignField: "_id",
+  //       as: "user"
+  //     }
+  //   },
+  //   {
+  //     $unwind: "$user"
+  //   },
 
    
 
-    // 3️⃣ Filter shopOrders ONLY for this owner
-    {
-      $addFields: {
-        shopOrders: {
-          $filter: {
-            input: "$shopOrders",
-            as: "shopOrder",
-            cond: { $eq: ["$$shopOrder.owner", user._id] }
-          }
-        }
-      }
-    },
+  //   // 3️⃣ Filter shopOrders ONLY for this owner
+  //   {
+  //     $addFields: {
+  //       shopOrders: {
+  //         $filter: {
+  //           input: "$shopOrders",
+  //           as: "shopOrder",
+  //           cond: { $eq: ["$$shopOrder.owner", user._id] }
+  //         }
+  //       }
+  //     }
+  //   },
 
-    // 4️⃣ Sort latest first
-    {
-      $sort: { createdAt: -1 }
-    }
-  ]);
-
-//   const orders = await Order.aggregate([
-//   // 1️⃣ Match orders for this owner
-//   {
-//     $match: {
-//       "shopOrders.owner": user._id
-//     }
-//   },
-
-//   // 2️⃣ Populate USER
-//   {
-//     $lookup: {
-//       from: "users",
-//       localField: "user",
-//       foreignField: "_id",
-//       as: "user"
-//     }
-//   },
-//   { $unwind: "$user" },
-
-//   // 3️⃣ Keep ONLY this owner's shopOrders
-//   {
-//     $addFields: {
-//       shopOrders: {
-//         $filter: {
-//           input: "$shopOrders",
-//           as: "shopOrder",
-//           cond: { $eq: ["$$shopOrder.owner", user._id] }
-//         }
-//       }
-//     }
-//   },
-
-//   // 4️⃣ Unwind shopOrders (needed for item lookup)
-//   { $unwind: "$shopOrders" },
-
-//   // 5️⃣ Unwind shopOrderItems
-//   { $unwind: "$shopOrders.shopOrderItems" },
-
-//   // 6️⃣ Populate ITEMS
-//   {
-//     $lookup: {
-//       from: "items", // ⚠️ collection name
-//       localField: "shopOrders.shopOrderItems.item",
-//       foreignField: "_id",
-//       as: "itemDetails"
-//     }
-//   },
-//   { $unwind: "$itemDetails" },
-
-//   // 7️⃣ Attach item details
-//   {
-//     $addFields: {
-//       "shopOrders.shopOrderItems.item": {
-//         _id: "$itemDetails._id",
-//         name: "$itemDetails.name",
-//         image: "$itemDetails.image",
-//         price: "$itemDetails.price"
-//       }
-//     }
-//   },
-
-//   // 8️⃣ Cleanup
-//   { $project: { itemDetails: 0 } },
-
-//   // 9️⃣ Group back (VERY IMPORTANT)
-//   {
-//     $group: {
-//       _id: "$_id",
-//       paymentMethod: { $first: "$paymentMethod" },
-//       totalAmount: { $first: "$totalAmount" },
-//       user: { $first: "$user" },
-//       createdAt: { $first: "$createdAt" },
-//       shopOrders: { $push: "$shopOrders" }
-//     }
-//   },
-
-//   // 🔟 Sort
-//   { $sort: { createdAt: -1 } }
-// ]);
+  //   // 4️⃣ Sort latest first
+  //   {
+  //     $sort: { createdAt: -1 }
+  //   }
+  // ]);
 
 
-      // const filteredOrders = orders.map((order=> ({
-      //     _id:order._id,
-      //     paymentMethod:order.paymentMethod,
-      //     user: order.user,
-      //     shopOrders:order.shopOrders.find(o=>o.owner._id == req.userId),
-      //     createdAt:order.createdAt
-      // })))
+
+
+      const orders = ownerOrders.map((order=> ({
+          _id:order._id,
+          paymentMethod:order.paymentMethod,
+          user: order.user,
+          deliveryAddress: order.deliveryAddress,
+          totalAmount: order.totalAmount,
+          shopOrders:order.shopOrders.find(o=>o.owner._id == req.userId),
+          createdAt:order.createdAt
+      })))
 
         if (!orders) {
           return res.status(400).json({
@@ -284,6 +210,34 @@ class OrderController {
          message: "Get User Orders | Internal Server Error",
        });
      }
+  }
+
+  static async updateOrderStatus(req, res) {
+    try {
+      const {orderId, shopId} = req.param;
+      const {status} = req.body;
+
+      const order = await Order.findById(orderId);
+      
+      const shopOrder = order.shopOrders.find(o=>o.shop==shopId);
+      if (!shopOrder) {
+        return res.status(400).json({
+          status: "fail",
+          message: "shop order not found"
+        })
+      }
+
+      shopOrder.status = status;
+      await shopOrder.save();
+      await shopOrder.populate("shopOrderItems.item", "name image price");  
+      return res.status(200).json(shopOrder);
+      
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'update order status | Internal Server Error'
+      });
+    }
   }
 
   
