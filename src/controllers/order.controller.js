@@ -214,7 +214,7 @@ class OrderController {
 
   static async updateOrderStatus(req, res) {
     try {
-      const {orderId, shopId} = req.param;
+      const { orderId, shopId } = req.params;
       const {status} = req.body;
 
       const order = await Order.findById(orderId);
@@ -229,13 +229,13 @@ class OrderController {
 
       shopOrder.status = status;
       await shopOrder.save();
-      await shopOrder.populate("shopOrderItems.item", "name image price");  
-      return res.status(200).json(shopOrder);
+      await order.save();
+      return res.status(200).json(shopOrder.status);
       
     } catch (error) {
       return res.status(500).json({
         status: 'error',
-        message: 'update order status | Internal Server Error'
+        message: `update order status | Internal Server Error${error}`
       });
     }
   }

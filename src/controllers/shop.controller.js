@@ -126,7 +126,7 @@ class ShopController {
           data: {shop}
         });
     } catch (error) {
-      console.log("getMyShop error - ", error);
+      console.error("getMyShop error - ", error);
       return res.status(500).json({
         status: 'error',
         message: 'getMyShop | Internal Server Error'
