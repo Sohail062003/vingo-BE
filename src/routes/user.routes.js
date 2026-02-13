@@ -7,6 +7,6 @@ const route = express.Router();
 
 
 route.get("/current-user", isAuth, UserController.getCurrentUser);
-
+route.post("/update-location", isAuth, UserController.updateUserLocation);
 
 export default route;

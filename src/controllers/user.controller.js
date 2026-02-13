@@ -36,6 +36,40 @@ class UserController {
       });
     }
   }
+
+  static async updateUserLocation(req, res) {
+    try {
+      const {lon, lat} = req.body;
+      
+      const user = await User.findByIdAndUpdate(req.userId, {
+        location: {
+          type: 'Point',
+          coordinates: [lon, lat]
+        }
+      }, {new: true});
+
+      if (!user) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'User not found'
+        });
+      }
+
+      return res.status(200).json({
+        status: 'Success',
+        message: 'location updated sucessfully'
+      })
+      
+      
+
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: `update user location | internal server error - ${error}`
+      })
+    }
+  }
+
 }
 
 export default UserController;
