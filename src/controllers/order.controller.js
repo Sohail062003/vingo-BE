@@ -304,7 +304,33 @@ class OrderController {
     }
   }
 
-  
+  static async getDeliveryBoyAssignment(req, res) {
+    try {
+      const deliveryBoyId = req.userId;
+      const assignments = await DeliveryAssignment.find({
+        brodcastedTo: deliveryBoyId,
+        status: "brodcasted"
+      })
+      .populate("order")
+      .populate("shop")
+
+      const formated = assignments.map(a=> ({
+        assignmentId: a._id,
+        orderId: a.order._id,
+        shopName: a.shop.name,
+        deliveryAddress: a.order.deliveryAddress,
+        items: a.order.shopOrders.find(so=> so._id.equals(a.shopOrderId))?.shopOrderItems || [],
+        subTotal: a.order.shopOrders.find(so=> so._id.equals(a.shopOrderId))?.subTotal
+      }))
+
+      return res.status(200).json(formated)
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message: `get Delivery Boy Assignment | Internal Server Error ${error}`
+      })
+    }
+  }
 
 
 }
