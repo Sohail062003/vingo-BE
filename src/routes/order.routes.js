@@ -10,6 +10,7 @@ route.get("/get-assignments", isAuth ,OrderController.getDeliveryBoyAssignment);
 
 route.post("/place-order", isAuth ,OrderController.placeOrder);
 route.post("/update-status/:orderId/:shopId", isAuth, OrderController.updateOrderStatus);
+route.post("/accept-order/:assignmentId", isAuth, OrderController.acceptOrder);
 
 
 export default route;

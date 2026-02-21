@@ -231,7 +231,7 @@ class OrderController {
       shopOrder.status = status;
       let deliveryBoysPlayload=[];
       
-      if (status === "out of delivery" || !shopOrder.assignment) {
+      if (status === "out of delivery" && !shopOrder.assignment) {
         const { longitude, latitude } = order.deliveryAddress;
         const nearByDeliveryBoys = await User.find({
           role: "deliveryBoy",
@@ -328,6 +328,67 @@ class OrderController {
       return res.status(500).json({
         status: "error",
         message: `get Delivery Boy Assignment | Internal Server Error ${error}`
+      })
+    }
+  }
+
+  static async acceptOrder(req, res) {
+    try {
+      const {assignedId} = req.params;
+      const assignment = await DeliveryAssignment.findById(assignedId);
+      if (!assignment) {
+        return res.status(400).json({
+          status: "fail",
+          message: "assignment not found"
+        });
+      }
+
+      if (assignment.status !=="brodcasted"){
+        return res.status(400).json({
+          status: "fail",
+          message: "assignment is exprired"
+        });
+      }
+
+      const alreadyAssigned = await DeliveryAssignment.findById({
+        assignedTo:req.iserId,
+        status: {$nin:["brodcasted", "completed"]}
+      })
+
+      if (alreadyAssigned) {
+        return res.status(400).json({
+          status: "fail",
+          message: "already assigned to another order"
+        });
+      }
+
+      assignment.assignedTo=req.userId
+      assignment.status='assigned'
+      assignment.acceptedAt=new Date()
+      await assignment.save();
+
+      const order = await Order.findById(assignment.order)
+      if (!order) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'order not found'
+        })
+      }
+
+      const shopOrder = order.shopOrders.find(so=>so.id == assignment.shopOrderId)
+      shopOrder.assignedDeliveryBoy=req.userId;
+      await order.save()
+      
+      await order.populate('shopOrders.assignedDeliveryBoy')
+
+      return res.status(200).json({
+        message:'order Accepted'
+      })
+
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: `accept order | Internal Server Error ${error}`
       })
     }
   }
