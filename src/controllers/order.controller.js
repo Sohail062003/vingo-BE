@@ -113,8 +113,8 @@ class OrderController {
           .sort({ createdAt: -1 })
           .populate("shopOrders.shop", "name")
           .populate("shopOrders.owner", "name email mobile") 
-          .populate("shopOrders.shopOrderItems.item", "name image price");
-  
+          .populate("shopOrders.shopOrderItems.item", "name image price")
+
           if (!orders) {
             return res.status(400).json({
               status: "fail",
@@ -133,7 +133,8 @@ class OrderController {
         .sort({ createdAt: -1 })
         .populate("shopOrders.shop", "name")
         .populate("user") 
-        .populate("shopOrders.shopOrderItems.item", "name image price");
+        .populate("shopOrders.shopOrderItems.item", "name image price")
+        .populate("shopOrders.assignedDeliveryBoy", "fullName mobile");
 
 
   //       const orders = await Order.aggregate([
@@ -293,7 +294,7 @@ class OrderController {
         shopOrder:updatedShopOrder,
         assignedDeliveryBoy: updatedShopOrder?.assignedDeliveryBoy,
         availableBoys: deliveryBoysPlayload,
-        assignment: updatedShopOrder?.assignment._id
+        assignment: updatedShopOrder?.assignment?._id
       });
       
     } catch (error) {
@@ -334,7 +335,8 @@ class OrderController {
 
   static async acceptOrder(req, res) {
     try {
-      const {assignedId} = req.params;
+      const { assignedId } = req.params;
+      console.log("assignemt",assignedId);
       const assignment = await DeliveryAssignment.findById(assignedId);
       if (!assignment) {
         return res.status(400).json({
@@ -342,7 +344,7 @@ class OrderController {
           message: "assignment not found"
         });
       }
-
+      
       if (assignment.status !=="brodcasted"){
         return res.status(400).json({
           status: "fail",
@@ -350,8 +352,8 @@ class OrderController {
         });
       }
 
-      const alreadyAssigned = await DeliveryAssignment.findById({
-        assignedTo:req.iserId,
+      const alreadyAssigned = await DeliveryAssignment.findOne({
+        assignedTo: req.userId,
         status: {$nin:["brodcasted", "completed"]}
       })
 
@@ -362,7 +364,7 @@ class OrderController {
         });
       }
 
-      assignment.assignedTo=req.userId
+      assignment.assignedTo= req.userId
       assignment.status='assigned'
       assignment.acceptedAt=new Date()
       await assignment.save();
@@ -390,6 +392,73 @@ class OrderController {
         status: 'error',
         message: `accept order | Internal Server Error ${error}`
       })
+    }
+  }
+
+  static async getCurrentOrder(req, res) {
+    try {
+      const assignment = await DeliveryAssignment.findOne({
+        assignedTo: req.userId,
+        status: "assigned"
+      })
+      .populate("shop", "name")
+      .populate("assignedTo", "fullName email mobile location")
+      .populate({
+        path: "order",
+        populate:[{path: "user",select: "fullName email location mobile"}]
+      });
+
+      if (!assignment) {
+        return res.status(400).json({
+          status: 'fail',
+          message: "assignment  not  found"
+        });
+      }
+      if (!assignment.order) {
+        return res.status(400).json({
+          status: 'fail',
+          message: "order  not  found"
+        });
+      }
+
+      const shopOrder = assignment.order.shopOrders.find(so => String(so._id) == String(assignment.shopOrderId))
+
+      if (!shopOrder) {
+        return res.status(400).json({
+          status: 'fail',
+          message: "Shop order  not  found"
+        });
+      }
+
+
+      let deliveryBoyLocation= {lat:null, lon:null}
+      if (assignment.assignedTo.location.coordinates.length==2) {
+        deliveryBoyLocation.lon = assignment.assignedTo.location.coordinates[0];
+        deliveryBoyLocation.lat = assignment.assignedTo.location.coordinates[1];
+      } 
+      
+      let customerLocation = {lat:null, lon:null}
+      if (assignment.order.deliveryAddress) {
+        customerLocation.lat  = assignment.order.deliveryAddress.latitude;
+        customerLocation.lon  = assignment.order.deliveryAddress.longitude;
+      }
+
+
+      return res.status(200).json({
+        _id:assignment.order._id,
+        user: assignment.order.user,
+        shopOrder,
+        deliveryAddress:assignment.order.deliveryAddress,
+        deliveryBoyLocation,
+        customerLocation
+      })
+
+
+    } catch (error) {
+      return res.status(500).json({
+        status: "error",
+        message: `get current order | internal server error ${error}`
+      });
     }
   }
 
