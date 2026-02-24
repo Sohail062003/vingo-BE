@@ -462,6 +462,42 @@ class OrderController {
     }
   }
 
+  static async getOrderById(req, res) {
+    try {
+      const {orderId} = req.params;
+      const order=await Order.findById(orderId)
+      .populate("user")
+      .populate({
+        path:"shopOrders.shop",
+        model: "Shop"
+      })
+      .populate({
+        path:"shopOrders.assignedDeliveryBoy",
+        model: "User"
+      })
+      .populate({
+        path:"shopOrders.shopOrderItems.item",
+        model: "Item"
+      })
+      .lean()
+
+      if (!order) {
+        return res.status(400).json({
+          status: 'fail',
+          message: "order not found"
+        })
+      }
+
+      return res.status(200).json(order);
+
+
+    } catch (error) {
+      return res.status(500).json({
+        status: 'error',
+        message: `get order by ID | internal server error ${error}`
+      })
+    }
+  }
 
 }
 

@@ -8,6 +8,8 @@ const route = express.Router();
 route.get("/my-orders", isAuth ,OrderController.getMyOrders);
 route.get("/get-assignments", isAuth ,OrderController.getDeliveryBoyAssignment);
 route.get("/get-current-order", isAuth, OrderController.getCurrentOrder);
+route.get("/get-order-by-id/:orderId", isAuth, OrderController.getOrderById);
+
 
 route.post("/place-order", isAuth ,OrderController.placeOrder);
 route.post("/update-status/:orderId/:shopId", isAuth, OrderController.updateOrderStatus);
