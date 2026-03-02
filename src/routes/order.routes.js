@@ -12,6 +12,8 @@ route.get("/get-order-by-id/:orderId", isAuth, OrderController.getOrderById);
 
 
 route.post("/place-order", isAuth ,OrderController.placeOrder);
+route.post("/send-delivery-otp", isAuth ,OrderController.sendDeliveryOtp);
+route.post("/verify-delivery-otp", isAuth ,OrderController.verifyDeliveryOtp);
 route.post("/update-status/:orderId/:shopId", isAuth, OrderController.updateOrderStatus);
 route.post("/accept-order/:assignedId", isAuth, OrderController.acceptOrder);
 

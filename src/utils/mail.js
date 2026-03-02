@@ -35,6 +35,28 @@ export const sendOtpMail = async (to, otp) => {
    console.log(`OTP email sent to ${to} with OTP: ${otp}`);
 };
 
+export const sendDelivertOtpMail = async (user, otp) => {
+   await transporter.sendMail({
+        from: process.env.EMAIL, // change it to real email
+        to: user.email, // change it to real email
+        subject: "Delivery OTP for Order",
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+                <h2 style="color: #333;">Hello,</h2>
+                <p style="color: #555;">Your OTP for delivery is:</p>
+                <h1 style="color: #ff6f00; font-size: 24px; text-align: center;">${otp}</h1>
+                <p style="color: #555;">Please use this OTP to complete your delivery. It will expire in 5 minutes.</p>
+                <hr style="border-top: 1px solid #eee;">
+                <p style="color: #777; font-size: 12px;">This is an automated email. Please do not reply.</p>
+            </div>
+        `,
+   })
+//    console.log(`OTP email sent to ${to} with OTP: ${otp}`);
+};
+
+
+
+
 // import nodemailer from "nodemailer";
 
 // let transporter;
